@@ -1,7 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'pokemon_list_page.dart';
+import 'homepage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -33,8 +33,10 @@ class _LoginPageState extends State<LoginPage> {
 
     if (username == "admin" && password == "1234") {
       
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => PokemonListPage()));
+Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(builder: (context) => const HomePage()),
+);
     } else {
       setState(() {
         _errorMessage = "Usuario o contraseña incorrectos";

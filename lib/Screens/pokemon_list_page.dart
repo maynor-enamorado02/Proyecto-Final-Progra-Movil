@@ -86,63 +86,96 @@ class _PokemonListPageState extends State<PokemonListPage> {
   }
 
 
-  Widget _buildList() {
-    if (_hasError) {
-      return Center(
-        child: Text(_errorMessage ?? 'Error desconocido'),
-      );
-    }
-    if (isLoading) {
-      return Center(child: CircularProgressIndicator());
-    }
-    if (_filteredPokemons.isEmpty) {
-      return Center(
-        child: Text('No se encontraron pokémons'),
-      );
-    }
-    return ListView.builder(
+Widget _buildList() {
+  if (_hasError) {
+    return Center(
+      child: Text(_errorMessage ?? 'Error desconocido'),
+    );
+  }
+  if (isLoading) {
+    return Center(child: CircularProgressIndicator());
+  }
+  if (_filteredPokemons.isEmpty) {
+    return Center(
+      child: Text('No se encontraron pokémons'),
+    );
+  }
+
+  return Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3, // Mostrar 3 columnas
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.7, // Ajustar proporción para tarjetas más altas
+      ),
       itemCount: _filteredPokemons.length,
       itemBuilder: (context, index) {
         final pokemon = _filteredPokemons[index];
-        return Card(
-          margin: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-          child: ListTile(
-            leading: FutureBuilder<String?>(
-              future: pokemon.getImageUrl(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done &&
-                    snapshot.hasData) {
-                  return Image.network(
-                    snapshot.data!,
-                    width: 56,
-                    height: 56,
-                    fit: BoxFit.contain,
-                  );
-                } else {
-                  return SizedBox(
-                    width: 56,
-                    height: 56,
-                    child:
-                        Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                  );
-                }
-              },
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    PokemonDetailPage(url: pokemon.url, name: pokemon.name),
+              ),
+            );
+          },
+          child: Card(
+            color: Colors.grey[900],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            title: Text(_capitalize(pokemon.name)),
-            trailing: Icon(Icons.keyboard_arrow_right),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        PokemonDetailPage(url: pokemon.url, name: pokemon.name)),
-              );
-            },
+            elevation: 3,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FutureBuilder<String?>(
+                    future: pokemon.getImageUrl(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData) {
+                        return Image.network(
+                          snapshot.data!,
+                          width: 70,
+                          height: 70,
+                          fit: BoxFit.contain,
+                        );
+                      } else {
+                        return const SizedBox(
+                          width: 70,
+                          height: 70,
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _capitalize(pokemon.name),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       },
-    );
-  }
+    ),
+  );
+}
+
 
   String _capitalize(String text) {
     if (text.isEmpty) return text;
