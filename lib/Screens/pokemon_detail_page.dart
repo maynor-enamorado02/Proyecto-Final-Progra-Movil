@@ -23,17 +23,20 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   bool isFavorite = false;
+  bool isAnonymous = false;
 
   @override
   void initState() {
     super.initState();
     _pokemonDetailFuture = fetchPokemonDetail(widget.url);
+    final user = _auth.currentUser;
+    isAnonymous = user == null || user.isAnonymous;
     checkIfFavorite();
   }
-  
-Future<void> checkIfFavorite() async {
+
+  Future<void> checkIfFavorite() async {
     final user = _auth.currentUser;
-    if (user != null) {
+    if (user != null && !user.isAnonymous) {
       final doc = await _firestore
           .collection('users')
           .doc(user.uid)
@@ -94,7 +97,7 @@ Future<void> checkIfFavorite() async {
   Future<void> addToFavorites(PokemonDetail pokemon) async {
     final user = _auth.currentUser;
 
-    if (user == null) {
+    if (user == null || user.isAnonymous) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Debes iniciar sesión para guardar favoritos')),
       );
@@ -128,7 +131,7 @@ Future<void> checkIfFavorite() async {
     }
   }
 
-   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -177,8 +180,16 @@ Future<void> checkIfFavorite() async {
                       isFavorite ? Icons.favorite : Icons.favorite_border,
                       color: Colors.white,
                     ),
-                    label: Text(isFavorite ? "Ya en Favoritos" : "Agregar a Favoritos"),
-                    onPressed: isFavorite ? null : () => addToFavorites(pokemon),
+                    label: Text(
+                      isAnonymous
+                          ? "Inicia sesión para agregar"
+                          : (isFavorite
+                              ? "Ya en Favoritos"
+                              : "Agregar a Favoritos"),
+                    ),
+                    onPressed: isAnonymous || isFavorite
+                        ? null
+                        : () => addToFavorites(pokemon),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.redAccent,
                       disabledBackgroundColor: Colors.grey,
