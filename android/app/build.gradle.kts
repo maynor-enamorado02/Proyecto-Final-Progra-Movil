@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.prueba"
-    compileSdk = 34 // puedes ajustar según tu flutter.compileSdkVersion
+    compileSdk = 35 // puedes ajustar según tu flutter.compileSdkVersion
     ndkVersion = "27.0.12077973" // 👈 Esto resuelve el problema del NDK
 
     compileOptions {
@@ -23,7 +23,7 @@ android {
  defaultConfig {
         applicationId = "com.example.prueba"
         minSdk = 23 // 👈 Esto resuelve el error de firebase_auth
-        targetSdk = 34 // o usa flutter.targetSdkVersion si lo tienes
+        targetSdk = 35 // o usa flutter.targetSdkVersion si lo tienes
         versionCode = 1
         versionName = "1.0.0"
     }
