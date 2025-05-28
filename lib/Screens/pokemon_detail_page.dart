@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'models.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PokemonDetailPage extends StatefulWidget {
   final String url;
@@ -17,11 +19,34 @@ class PokemonDetailPage extends StatefulWidget {
 
 class _PokemonDetailPageState extends State<PokemonDetailPage> {
   late Future<PokemonDetail> _pokemonDetailFuture;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  bool isFavorite = false;
 
   @override
   void initState() {
     super.initState();
     _pokemonDetailFuture = fetchPokemonDetail(widget.url);
+    checkIfFavorite();
+  }
+  
+Future<void> checkIfFavorite() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final doc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('favorites')
+          .doc(widget.name)
+          .get();
+
+      if (doc.exists) {
+        setState(() {
+          isFavorite = true;
+        });
+      }
+    }
   }
 
   Future<PokemonDetail> fetchPokemonDetail(String url) async {
@@ -32,6 +57,11 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> {
     } else {
       throw Exception('Error al cargar el detalle del Pokémon');
     }
+  }
+
+  String _capitalize(String s) {
+    if (s.isEmpty) return s;
+    return s[0].toUpperCase() + s.substring(1);
   }
 
   Widget _buildStatRow(String statName, int statValue) {
@@ -61,12 +91,44 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> {
     );
   }
 
-  String _capitalize(String s) {
-    if (s.isEmpty) return s;
-    return s[0].toUpperCase() + s.substring(1);
+  Future<void> addToFavorites(PokemonDetail pokemon) async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Debes iniciar sesión para guardar favoritos')),
+      );
+      return;
+    }
+
+    try {
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('favorites')
+          .doc(pokemon.name)
+          .set({
+        'name': pokemon.name,
+        'imageUrl': pokemon.imageUrl,
+        'stats': pokemon.stats,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      setState(() {
+        isFavorite = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${_capitalize(pokemon.name)} agregado a favoritos')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al guardar: $e')),
+      );
+    }
   }
 
-  @override
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -109,6 +171,19 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> {
                   SizedBox(height: 24),
                   ...pokemon.stats.entries
                       .map((entry) => _buildStatRow(entry.key, entry.value)),
+                  SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    icon: Icon(
+                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: Colors.white,
+                    ),
+                    label: Text(isFavorite ? "Ya en Favoritos" : "Agregar a Favoritos"),
+                    onPressed: isFavorite ? null : () => addToFavorites(pokemon),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      disabledBackgroundColor: Colors.grey,
+                    ),
+                  ),
                 ],
               ),
             );

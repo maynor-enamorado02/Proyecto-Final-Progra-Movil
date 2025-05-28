@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'pokemon_list_page.dart';
-//import 'package:prueba/Screens/favoritos.dart';
+import 'package:prueba/Screens/favoritos.dart';
 import 'package:prueba/Screens/comparar.dart';
 import 'package:prueba/Screens/opciones.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -15,7 +16,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _screens = [
     PokemonListPage(),
-    //FavoritosPage(),
+    FavoritosPage(),
     CompararPage(),
     OpcionesPage(),
   ];
@@ -29,22 +30,25 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Pokémon App")),
+      appBar: AppBar(
+        title: Text("Pokémon App"),
+      ),
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         selectedItemColor: Colors.redAccent,
         unselectedItemColor: Colors.white70,
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.list),
             label: 'Lista Pokémon',
           ),
-          //BottomNavigationBarItem(
-           // icon: Icon(Icons.favorite),
-           // label: 'Favoritos',
-        //  ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: 'Favoritos',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.compare_arrows),
             label: 'Comparar',
