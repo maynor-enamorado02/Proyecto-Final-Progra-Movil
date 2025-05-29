@@ -39,7 +39,15 @@ class _CompararPageState extends State<CompararPage> {
             ),
             const SizedBox(height: 24),
             if (_pokemon1 != null && _pokemon2 != null)
-              Expanded(child: _buildComparisonTable(_pokemon1!, _pokemon2!))
+              Expanded(
+                child: Column(
+                  children: [
+                    _buildResultadoCombate(_pokemon1!, _pokemon2!),
+                    const SizedBox(height: 20),
+                    Expanded(child: _buildComparisonTable(_pokemon1!, _pokemon2!)),
+                  ],
+                ),
+              )
             else
               Expanded(
                 child: Center(
@@ -74,7 +82,6 @@ class _CompararPageState extends State<CompararPage> {
   }
 
   Widget _buildComparisonTable(PokemonDetail p1, PokemonDetail p2) {
-    // Tomamos las claves comunes para comparar
     final statKeys = p1.stats.keys.toSet().intersection(p2.stats.keys.toSet()).toList();
 
     return ListView.builder(
@@ -123,6 +130,70 @@ class _CompararPageState extends State<CompararPage> {
           ),
         );
       },
+    );
+  }
+
+  // 🔹 Función para calcular el total de stats de un Pokémon
+  double calcularScore(PokemonDetail p) {
+    return p.stats.values.fold(0, (sum, stat) => sum + stat);
+  }
+
+  // 🔹 Widget que muestra la probabilidad de victoria
+  Widget _buildResultadoCombate(PokemonDetail p1, PokemonDetail p2) {
+    final score1 = calcularScore(p1);
+    final score2 = calcularScore(p2);
+    final total = score1 + score2;
+
+    final prob1 = (score1 / total) * 100;
+    final prob2 = (score2 / total) * 100;
+
+    String ganador;
+    if (prob1 > prob2) {
+      ganador = "${p1.name.toUpperCase()} tiene más probabilidad de ganar";
+    } else if (prob2 > prob1) {
+      ganador = "${p2.name.toUpperCase()} tiene más probabilidad de ganar";
+    } else {
+      ganador = "Empate técnico";
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          ganador,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: LinearProgressIndicator(
+                value: prob1 / 100,
+                color: Colors.blue,
+                backgroundColor: Colors.blue.shade100,
+                minHeight: 10,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text("${prob1.toStringAsFixed(1)}%"),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Expanded(
+              child: LinearProgressIndicator(
+                value: prob2 / 100,
+                color: Colors.red,
+                backgroundColor: Colors.red.shade100,
+                minHeight: 10,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text("${prob2.toStringAsFixed(1)}%"),
+          ],
+        ),
+      ],
     );
   }
 }

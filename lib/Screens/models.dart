@@ -64,3 +64,33 @@ class PokemonDetail {
   @override
   int get hashCode => name.hashCode;
 }
+
+// Función para obtener detalles de un Pokémon específico en comparar
+Future<List<PokemonDetail>> fetchAllPokemonDetails({int limit = 1200}) async {
+  final url = Uri.parse('https://pokeapi.co/api/v2/pokemon?limit=$limit');
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+    final List results = data['results'];
+
+    // Creamos una lista de futuros para las peticiones de detalle
+    List<Future<PokemonDetail?>> futures = results.map((item) async {
+      final detailResponse = await http.get(Uri.parse(item['url']));
+      if (detailResponse.statusCode == 200) {
+        final detailData = json.decode(detailResponse.body);
+        return PokemonDetail.fromJson(detailData);
+      } else {
+        return null; // si falla una petición, ignoramos
+      }
+    }).toList();
+
+    // Esperamos todas las peticiones en paralelo
+    final details = await Future.wait(futures);
+
+    // Filtramos los que no son nulos
+    return details.whereType<PokemonDetail>().toList();
+  } else {
+    throw Exception('Error al cargar los Pokémon');
+  }
+}
