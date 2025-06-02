@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'models.dart'; // Tu modelo PokemonDetail debe tener .name y .stats Map<String, int>
+import 'package:dropdown_search/dropdown_search.dart';
 
 class CompararPage extends StatefulWidget {
   final List<PokemonDetail> listaPokemones;
@@ -11,8 +12,30 @@ class CompararPage extends StatefulWidget {
 }
 
 class _CompararPageState extends State<CompararPage> {
+  List<PokemonDetail> _pokemones = [];
   PokemonDetail? _pokemon1;
   PokemonDetail? _pokemon2;
+  int _offset = 0;
+  final int _limit = 50;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNextBatch();
+  }
+
+  Future<void> _loadNextBatch() async {
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+
+    final nuevos = await fetchPokemonDetailsBatch(_offset, _limit);
+    setState(() {
+      _pokemones.addAll(nuevos);
+      _offset += _limit;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +60,12 @@ class _CompararPageState extends State<CompararPage> {
                 Expanded(child: _buildDropdown((p) => setState(() => _pokemon2 = p), _pokemon2)),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _isLoading ? null : _loadNextBatch,
+              child: const Text("Cargar más Pokémon"),
+            ),
+            const SizedBox(height: 16),
             if (_pokemon1 != null && _pokemon2 != null)
               Expanded(
                 child: Column(
@@ -63,23 +91,23 @@ class _CompararPageState extends State<CompararPage> {
     );
   }
 
-  Widget _buildDropdown(ValueChanged<PokemonDetail?> onChanged, PokemonDetail? selected) {
-    return DropdownButton<PokemonDetail>(
-      isExpanded: true,
-      value: selected,
-      hint: const Text("Pokémon"),
-      items: widget.listaPokemones.map((p) {
-        return DropdownMenuItem(
-          value: p,
-          child: Text(
-            p.name[0].toUpperCase() + p.name.substring(1),
-            overflow: TextOverflow.ellipsis,
-          ),
-        );
-      }).toList(),
-      onChanged: onChanged,
-    );
-  }
+Widget _buildDropdown(ValueChanged<PokemonDetail?> onChanged, PokemonDetail? selected) {
+  return DropdownSearch<PokemonDetail>(
+    items: _pokemones,
+    selectedItem: selected,
+    itemAsString: (PokemonDetail p) => p.name[0].toUpperCase() + p.name.substring(1),
+    onChanged: onChanged,
+    compareFn: (a, b) => a.name == b.name, // 👈 ¡ESTO SOLUCIONA EL ERROR!
+    dropdownDecoratorProps: const DropDownDecoratorProps(
+      dropdownSearchDecoration: InputDecoration(labelText: "Selecciona Pokémon"),
+    ),
+    filterFn: (item, filter) => item.name.toLowerCase().contains(filter.toLowerCase()),
+    popupProps: const PopupProps.menu(
+      showSearchBox: true,
+      showSelectedItems: true,
+    ),
+  );
+}
 
   Widget _buildComparisonTable(PokemonDetail p1, PokemonDetail p2) {
     final statKeys = p1.stats.keys.toSet().intersection(p2.stats.keys.toSet()).toList();
@@ -133,12 +161,10 @@ class _CompararPageState extends State<CompararPage> {
     );
   }
 
-  // 🔹 Función para calcular el total de stats de un Pokémon
   double calcularScore(PokemonDetail p) {
     return p.stats.values.fold(0, (sum, stat) => sum + stat);
   }
 
-  // 🔹 Widget que muestra la probabilidad de victoria
   Widget _buildResultadoCombate(PokemonDetail p1, PokemonDetail p2) {
     final score1 = calcularScore(p1);
     final score2 = calcularScore(p2);
