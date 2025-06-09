@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:prueba/Screens/login_page.dart';
+import 'package:prueba/Screens/homepage.dart';
+import 'firebase_options.dart';
 
-void main() {
-  runApp(PokemonApp());
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+  options: DefaultFirebaseOptions.currentPlatform,
+); 
+  runApp(const PokemonApp());
 }
 
 class PokemonApp extends StatelessWidget {
@@ -17,7 +26,9 @@ class PokemonApp extends StatelessWidget {
         brightness: Brightness.dark,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: LoginPage(),
+      home: FirebaseAuth.instance.currentUser == null
+          ? const LoginPage()
+          : const HomePage(),
     );
   }
 }

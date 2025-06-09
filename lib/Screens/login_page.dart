@@ -1,7 +1,9 @@
-// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'pokemon_list_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'homepage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,33 +13,114 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _userController = TextEditingController();
-  final TextEditingController _passController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
   bool _isLoading = false;
   String? _errorMessage;
 
-  void _tryLogin() async {
-    if (!_formKey.currentState!.validate()) return;
+  void _goToHomePage() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomePage()),
+    );
+  }
 
+  Future<void> _signInWithGoogle() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
-    // Simulate authentication delay
-    await Future.delayed(Duration(seconds: 1));
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        setState(() {
+          _errorMessage = "Inicio de sesión cancelado";
+        });
+        return;
+      }
 
-    String username = _userController.text.trim();
-    String password = _passController.text;
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
 
-    if (username == "admin" && password == "1234") {
-      
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => PokemonListPage()));
-    } else {
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      _goToHomePage();
+    } catch (e) {
       setState(() {
-        _errorMessage = "Usuario o contraseña incorrectos";
+        _errorMessage = "Error con Google: $e";
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _signInWithEmail() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+      _goToHomePage();
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _errorMessage = e.message;
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _registerWithEmail() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+      _goToHomePage();
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _errorMessage = e.message;
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _signInAnonymously() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await FirebaseAuth.instance.signInAnonymously();
+      _goToHomePage();
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Error como invitado: $e";
+      });
+    } finally {
+      setState(() {
         _isLoading = false;
       });
     }
@@ -47,72 +130,89 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Login Pokémon"),
+        title: const Text("Login Pokémon"),
         centerTitle: true,
       ),
       body: Center(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 30),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                Image.network(
-                  "https://upload.wikimedia.org/wikipedia/commons/5/51/Pokebola-pokeball-png-0.png", width: 100, height: 100,),
-                //Icon(Icons.person, size: 100, color: Colors.redAccent),
-                SizedBox(height: 24),
-                TextFormField(
-                  controller: _userController,
-                  decoration: InputDecoration(
-                    labelText: "Usuario",
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return "Por favor ingresa el usuario";
-                    }
-                    return null;
-                  },
+          padding: const EdgeInsets.symmetric(horizontal: 30),
+          child: Column(
+            children: [
+              Image.network(
+                "https://upload.wikimedia.org/wikipedia/commons/5/51/Pokebola-pokeball-png-0.png",
+                width: 100,
+                height: 100,
+              ),
+              const SizedBox(height: 24),
+              if (_errorMessage != null)
+                Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.redAccent),
                 ),
-                SizedBox(height: 16),
-                TextFormField(
-                  controller: _passController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: "Contraseña",
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Por favor ingresa la contraseña";
-                    }
-                    return null;
-                  },
+              const SizedBox(height: 12),
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Correo'),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(labelText: 'Contraseña'),
+                obscureText: true,
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 45,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.email),
+                  label: const Text("Iniciar con Correo"),
+                  onPressed: _isLoading ? null : _signInWithEmail,
                 ),
-                SizedBox(height: 24),
-                _errorMessage != null
-                    ? Text(
-                        _errorMessage!,
-                        style: TextStyle(color: Colors.redAccent),
-                      )
-                    : SizedBox.shrink(),
-                SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _tryLogin,
-                    child: _isLoading
-                        ? CircularProgressIndicator(
-                            color: Colors.white,
-                          )
-                        : Text("Iniciar sesión", style: TextStyle(fontSize: 20, color: Colors.white)),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                height: 45,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.person_add),
+                  label: const Text("Registrarse con Correo"),
+                  onPressed: _isLoading ? null : _registerWithEmail,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueGrey,
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                height: 45,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.login),
+                  label: const Text("Iniciar con Google"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: _isLoading ? null : _signInWithGoogle,
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                height: 45,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.person_outline),
+                  label: const Text("Entrar como Invitado"),
+                  onPressed: _isLoading ? null : _signInAnonymously,
+                ),
+              ),
+              if (_isLoading)
+                const Padding(
+                  padding: EdgeInsets.only(top: 20),
+                  child: CircularProgressIndicator(),
+                ),
+            ],
           ),
         ),
       ),

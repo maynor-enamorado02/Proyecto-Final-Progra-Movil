@@ -45,5 +45,26 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- ✅ Google Sign-In URL Scheme -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<!-- Este valor viene del REVERSED_CLIENT_ID en GoogleService-Info.plist -->
+				<string>com.googleusercontent.apps.1068224636281-37tfnq36vmfr5p94k4ainddim60kudd5</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- ✅ Google Sign-In Client ID (opcional, pero recomendado en algunas versiones) -->
+	<key>GoogleSignIn</key>
+	<dict>
+		<key>ClientId</key>
+		<string>1068224636281-37tfnq36vmfr5p94k4ainddim60kudd5.apps.googleusercontent.com</string>
+	</dict>
 </dict>
 </plist>
