@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login_page.dart';
 
 class OpcionesPage extends StatefulWidget {
@@ -13,11 +14,26 @@ class OpcionesPage extends StatefulWidget {
 class OpcionesPageState extends State<OpcionesPage> {
   bool _isDarkMode = false;
   User? _usuario;
+  Map<String, dynamic>? _datosUsuario;
 
   @override
   void initState() {
     super.initState();
     _usuario = FirebaseAuth.instance.currentUser;
+    _cargarDatosUsuario();
+  }
+
+  Future<void> _cargarDatosUsuario() async {
+    final uid = _usuario?.uid;
+    if (uid != null) {
+      final doc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (doc.exists) {
+        setState(() {
+          _datosUsuario = doc.data();
+        });
+      }
+    }
   }
 
   Future<void> _cerrarSesion() async {
@@ -62,13 +78,31 @@ class OpcionesPageState extends State<OpcionesPage> {
                             : _usuario!.email ?? 'Correo no disponible',
                         style: const TextStyle(fontSize: 16, color: Colors.grey),
                       ),
+                      const SizedBox(height: 16),
+                      if (_datosUsuario != null) ...[
+                        ListTile(
+                          leading: const Icon(Icons.person),
+                          title: Text("Nombre: ${_datosUsuario!['nombre'] ?? 'N/D'}"),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.person_outline),
+                          title: Text("Apellido: ${_datosUsuario!['apellido'] ?? 'N/D'}"),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.phone),
+                          title: Text("Teléfono: ${_datosUsuario!['telefono'] ?? 'N/D'}"),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.flag),
+                          title: Text("País: ${_datosUsuario!['pais'] ?? 'N/D'}"),
+                        ),
+                      ],
                     ],
                   ),
                 ),
                 const SizedBox(height: 32),
                 const Divider(),
 
-                // Si el usuario es anónimo, mostramos el botón para iniciar sesión
                 if (_usuario!.isAnonymous)
                   ListTile(
                     leading: const Icon(Icons.login),

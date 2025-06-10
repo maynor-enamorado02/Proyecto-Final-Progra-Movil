@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:prueba/Screens/user_info_form.dart';
 import 'homepage.dart';
 
 class LoginPage extends StatefulWidget {
@@ -83,29 +84,38 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<void> _registerWithEmail() async {
+ Future<void> _registerWithEmail() async {
+  setState(() {
+    _isLoading = true;
+    _errorMessage = null;
+  });
+
+  try {
+    final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
+
+    debugPrint("Usuario registrado: ${userCredential.user?.uid}");
+
+    // Ir al formulario de datos personales
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const UserInfoForm()),
+    );
+  } on FirebaseAuthException catch (e) {
     setState(() {
-      _isLoading = true;
-      _errorMessage = null;
+      _errorMessage = e.message;
     });
-
-    try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-      _goToHomePage();
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        _errorMessage = e.message;
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    debugPrint("Error FirebaseAuth: ${e.message}");
+  } catch (e) {
+    debugPrint("Error inesperado: $e");
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
   }
-
+}
   Future<void> _signInAnonymously() async {
     setState(() {
       _isLoading = true;
