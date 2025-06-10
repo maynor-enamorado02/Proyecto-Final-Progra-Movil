@@ -1,8 +1,8 @@
 // ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:prueba/Screens/email_login_form.dart';
 import 'package:prueba/Screens/user_info_form.dart';
 import 'homepage.dart';
 
@@ -14,9 +14,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -61,61 +58,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<void> _signInWithEmail() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-      _goToHomePage();
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        _errorMessage = e.message;
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
- Future<void> _registerWithEmail() async {
-  setState(() {
-    _isLoading = true;
-    _errorMessage = null;
-  });
-
-  try {
-    final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: _emailController.text.trim(),
-      password: _passwordController.text.trim(),
-    );
-
-    debugPrint("Usuario registrado: ${userCredential.user?.uid}");
-
-    // Ir al formulario de datos personales
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const UserInfoForm()),
-    );
-  } on FirebaseAuthException catch (e) {
-    setState(() {
-      _errorMessage = e.message;
-    });
-    debugPrint("Error FirebaseAuth: ${e.message}");
-  } catch (e) {
-    debugPrint("Error inesperado: $e");
-  } finally {
-    setState(() {
-      _isLoading = false;
-    });
-  }
-}
   Future<void> _signInAnonymously() async {
     setState(() {
       _isLoading = true;
@@ -160,40 +102,6 @@ class _LoginPageState extends State<LoginPage> {
                   style: const TextStyle(color: Colors.redAccent),
                 ),
               const SizedBox(height: 12),
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Correo'),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Contraseña'),
-                obscureText: true,
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                height: 45,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.email),
-                  label: const Text("Iniciar con Correo"),
-                  onPressed: _isLoading ? null : _signInWithEmail,
-                ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                height: 45,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.person_add),
-                  label: const Text("Registrarse con Correo"),
-                  onPressed: _isLoading ? null : _registerWithEmail,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueGrey,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
                 height: 45,
@@ -208,6 +116,47 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                height: 45,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.person_add),
+                  label: const Text("Registrarse con Correo"),
+                  onPressed: _isLoading
+                      ? null
+                      : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const UserInfoForm()),
+                          );
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueGrey,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+SizedBox(
+  width: double.infinity,
+  height: 45,
+  child: ElevatedButton.icon(
+    icon: const Icon(Icons.email_outlined),
+    label: const Text("Iniciar sesión con Correo"),
+    onPressed: _isLoading
+        ? null
+        : () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const EmailLoginForm()),
+            );
+          },
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.teal,
+    ),
+  ),
+),
+const SizedBox(height: 8),
+
               SizedBox(
                 width: double.infinity,
                 height: 45,
