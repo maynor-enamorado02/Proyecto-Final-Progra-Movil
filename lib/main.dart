@@ -30,7 +30,7 @@ class PokemonApp extends StatelessWidget {
       builder: (context, themeProvider, _) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'PokéStats',
+          title: 'PokeStats',
           theme: themeProvider.themeData,
           home: FirebaseAuth.instance.currentUser == null
               ? const LoginPage()
