@@ -52,7 +52,7 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Iniciar sesión con Correo")),
+      appBar: AppBar(automaticallyImplyLeading: false,title: const Text("Iniciar sesión con Correo")),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(

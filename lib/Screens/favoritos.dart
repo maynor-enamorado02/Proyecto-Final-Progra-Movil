@@ -36,7 +36,7 @@ class FavoritosPage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text("Mis Favoritos")),
+      appBar: AppBar(automaticallyImplyLeading: false,title: Text("Mis Favoritos")),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
             .collection('users')

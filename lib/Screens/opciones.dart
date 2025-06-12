@@ -123,7 +123,7 @@ void _mostrarSelectorColor(ThemeProvider themeProvider) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Perfil de Usuario')),
+      appBar: AppBar(automaticallyImplyLeading: false,title: const Text('Perfil de Usuario')),
       body: _usuario == null
           ? const Center(child: Text("No hay usuario autenticado"))
           : ListView(

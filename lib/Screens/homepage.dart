@@ -34,7 +34,7 @@ class _HomePageState extends State<HomePage> {
     final primaryColor = themeProvider.primaryColor;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppBar(automaticallyImplyLeading: false,
         title: const Text("Pokémon App"),
         backgroundColor: primaryColor, // AppBar usa el color primario
       ),
