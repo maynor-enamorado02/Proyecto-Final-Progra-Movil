@@ -10,11 +10,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 class PokemonDetailPage extends StatefulWidget {
   final String url;
   final String name;
+  final Color selectedColor;
 
-  const PokemonDetailPage({super.key, required this.url, required this.name});
+  const PokemonDetailPage({super.key, required this.url, required this.name, required this.selectedColor,});
 
   @override
   _PokemonDetailPageState createState() => _PokemonDetailPageState();
+
 }
 
 class _PokemonDetailPageState extends State<PokemonDetailPage> {
@@ -24,7 +26,11 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> {
 
   bool isFavorite = false;
   bool isAnonymous = false;
-
+  Color _darken(Color color, [double amount = .3]) {
+  final hsl = HSLColor.fromColor(color);
+  final darker = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+  return darker.toColor();
+}
   @override
   void initState() {
     super.initState();
@@ -176,25 +182,27 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> {
                       .map((entry) => _buildStatRow(entry.key, entry.value)),
                   SizedBox(height: 24),
                   ElevatedButton.icon(
-                    icon: Icon(
-                      isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: Colors.white,
-                    ),
-                    label: Text(
-                      isAnonymous
-                          ? "Inicia sesión para agregar"
-                          : (isFavorite
-                              ? "Ya en Favoritos"
-                              : "Agregar a Favoritos"),
-                    ),
-                    onPressed: isAnonymous || isFavorite
-                        ? null
-                        : () => addToFavorites(pokemon),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                      disabledBackgroundColor: Colors.grey,
-                    ),
-                  ),
+  icon: Icon(
+    isFavorite ? Icons.favorite : Icons.favorite_border,
+    color: Colors.white,
+  ),
+  label: Text(
+    isAnonymous
+        ? "Inicia sesión para agregar"
+        : (isFavorite ? "Ya en Favoritos" : "Agregar a Favoritos"),
+    style: TextStyle(
+      color: _darken(widget.selectedColor), // texto más oscuro basado en el color base
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+  onPressed: isAnonymous || isFavorite
+      ? null
+      : () => addToFavorites(pokemon),
+  style: ElevatedButton.styleFrom(
+    backgroundColor: widget.selectedColor,
+    disabledBackgroundColor: Colors.grey,
+  ),
+),
                 ],
               ),
             );

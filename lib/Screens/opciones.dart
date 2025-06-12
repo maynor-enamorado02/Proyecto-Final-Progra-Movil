@@ -19,11 +19,22 @@ class OpcionesPageState extends State<OpcionesPage> {
   Map<String, dynamic>? _datosUsuario;
 
   @override
-  void initState() {
-    super.initState();
-    _usuario = FirebaseAuth.instance.currentUser;
+void initState() {
+  super.initState();
+  _usuario = FirebaseAuth.instance.currentUser;
+
+  if (_usuario == null) {
+    // Redirigir al login si no hay sesión
+    Future.microtask(() {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    });
+  } else {
     _cargarDatosUsuario();
   }
+}
 
   Future<void> _cargarDatosUsuario() async {
     final uid = _usuario?.uid;
@@ -38,14 +49,27 @@ class OpcionesPageState extends State<OpcionesPage> {
   }
 
   Future<void> _cerrarSesion() async {
-    await GoogleSignIn().signOut();
+    try {
+    if (!(_usuario?.isAnonymous ?? true)) {
+      final providerData = _usuario?.providerData;
+      final isGoogle = providerData?.any((info) => info.providerId == 'google.com') ?? false;
+      if (isGoogle) {
+        await GoogleSignIn().signOut();
+      }
+    }
+
     await FirebaseAuth.instance.signOut();
 
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const LoginPage()),
     );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al cerrar sesión: $e')),
+    );
   }
+}
 
 void _mostrarSelectorColor(ThemeProvider themeProvider) {
   Color pickerColor = themeProvider.primaryColor;
@@ -115,11 +139,13 @@ void _mostrarSelectorColor(ThemeProvider themeProvider) {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        _usuario!.isAnonymous
-                            ? 'Usuario anónimo'
-                            : _usuario!.displayName ?? 'Nombre no disponible',
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
+  _usuario!.isAnonymous
+      ? 'Usuario anónimo'
+      : (_datosUsuario?['nombre'] != null && _datosUsuario?['apellido'] != null)
+          ? '${_datosUsuario!['nombre']} ${_datosUsuario!['apellido']}'
+          : (_usuario!.displayName ?? 'Nombre no disponible'),
+  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+),
                       const SizedBox(height: 8),
                       Text(
                         _usuario!.isAnonymous

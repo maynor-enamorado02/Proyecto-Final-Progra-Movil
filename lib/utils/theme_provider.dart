@@ -27,27 +27,37 @@ class ThemeProvider with ChangeNotifier {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user != null && !user.isAnonymous) {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        final data = doc.data()!;
-        if (data.containsKey('colorPrimario')) {
-          _primaryColor = Color(int.parse(data['colorPrimario'], radix: 16));
-        }
-        if (data.containsKey('temaOscuro')) {
-          _isDarkMode = data['temaOscuro'] ?? false;
-        }
-        notifyListeners();
+  final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+  if (doc.exists) {
+    final data = doc.data()!;
+    if (data.containsKey('colorPrimario')) {
+      final colorHex = data['colorPrimario'];
+      try {
+        _primaryColor = Color(int.parse(colorHex.replaceFirst('#', '0xff')));
+      } catch (e) {
+        print('Error al convertir colorPrimario: $colorHex');
+        _primaryColor = Colors.blue; // Color por defecto
       }
-    } else {
-      // Usuario anónimo: cargar desde SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      _isDarkMode = prefs.getBool('temaOscuro') ?? false;
-      final colorHex = prefs.getString('colorPrimario');
-      if (colorHex != null) {
-        _primaryColor = Color(int.parse(colorHex.replaceAll('#', '0xff')));
-      }
-      notifyListeners();
     }
+    if (data.containsKey('temaOscuro')) {
+      _isDarkMode = data['temaOscuro'] ?? false;
+    }
+    notifyListeners();
+  }
+} else {
+  final prefs = await SharedPreferences.getInstance();
+  _isDarkMode = prefs.getBool('temaOscuro') ?? false;
+  final colorHex = prefs.getString('colorPrimario');
+  if (colorHex != null) {
+    try {
+      _primaryColor = Color(int.parse(colorHex.replaceFirst('#', '0xff')));
+    } catch (e) {
+      print('Error al convertir colorPrimario (anon): $colorHex');
+      _primaryColor = Colors.blue; // Color por defecto
+    }
+  }
+  notifyListeners();
+}
   }
 
   void toggleDarkMode(bool isDark) async {

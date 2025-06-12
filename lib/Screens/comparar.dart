@@ -1,5 +1,6 @@
+import 'package:PokeStats/utils/Battle_animation.dart';
 import 'package:flutter/material.dart';
-import 'models.dart'; // Tu modelo PokemonDetail debe tener .name y .stats Map<String, int>
+import 'models.dart'; // Tu modelo PokemonDetail debe tener .name, .stats Map<String, int> y .imageUrl
 import 'package:dropdown_search/dropdown_search.dart';
 
 class CompararPage extends StatefulWidget {
@@ -18,6 +19,30 @@ class _CompararPageState extends State<CompararPage> {
   int _offset = 0;
   final int _limit = 50;
   bool _isLoading = false;
+  bool _showBattleAnimation = false;
+  String _winnerName = '';
+
+void _startBattle() {
+  if (_pokemon1 != null && _pokemon2 != null) {
+    final p1Power = calcularPower(_pokemon1!);
+    final p2Power = calcularPower(_pokemon2!);
+
+    setState(() {
+      _winnerName = p1Power >= p2Power ? _pokemon1!.name : _pokemon2!.name;
+      _showBattleAnimation = true;
+    });
+  }
+}
+
+double calcularPower(PokemonDetail p) {
+  return p.stats.values.fold(0, (sum, stat) => sum + stat);
+}
+
+void _onBattleComplete() {
+  setState(() {
+    _showBattleAnimation = false;
+  });
+}
 
   @override
   void initState() {
@@ -40,74 +65,109 @@ class _CompararPageState extends State<CompararPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Comparar Pokémon"),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const Text(
-              "Selecciona dos Pokémon",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(child: _buildDropdown((p) => setState(() => _pokemon1 = p), _pokemon1)),
-                const SizedBox(width: 20),
-                Expanded(child: _buildDropdown((p) => setState(() => _pokemon2 = p), _pokemon2)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _loadNextBatch,
-              child: const Text("Cargar más Pokémon"),
-            ),
-            const SizedBox(height: 16),
-            if (_pokemon1 != null && _pokemon2 != null)
-              Expanded(
-                child: Column(
-                  children: [
-                    _buildResultadoCombate(_pokemon1!, _pokemon2!),
-                    const SizedBox(height: 20),
-                    Expanded(child: _buildComparisonTable(_pokemon1!, _pokemon2!)),
-                  ],
-                ),
-              )
-            else
-              Expanded(
-                child: Center(
-                  child: Text(
-                    "Selecciona dos Pokémon para comparar",
-                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
-                  ),
+    appBar: AppBar(
+      title: const Text("Comparar Pokémon"),
+    ),
+    body: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          const Text(
+            "Selecciona dos Pokémon",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(child: _buildDropdown((p) => setState(() => _pokemon1 = p), _pokemon1)),
+              const SizedBox(width: 20),
+              Expanded(child: _buildDropdown((p) => setState(() => _pokemon2 = p), _pokemon2)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: _isLoading ? null : _loadNextBatch,
+                child: const Text("Cargar más Pokémon"),
+              ),
+              ElevatedButton(
+                onPressed: (_pokemon1 != null && _pokemon2 != null && !_showBattleAnimation) ? _startBattle : null,
+                child: const Text("Simular Batalla"),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (_showBattleAnimation && _pokemon1 != null && _pokemon2 != null)
+  BattleAnimation(
+    pokemon1: _pokemon1!,
+    pokemon2: _pokemon2!,
+    onAnimationComplete: _onBattleComplete,
+    winnerName: _winnerName,
+  )
+          else if (_pokemon1 != null && _pokemon2 != null)
+            Expanded(
+              child: Column(
+                children: [
+                  _buildResultadoCombate(_pokemon1!, _pokemon2!),
+                  const SizedBox(height: 20),
+                  Expanded(child: _buildComparisonTable(_pokemon1!, _pokemon2!)),
+                ],
+              ),
+            )
+          else
+            Expanded(
+              child: Center(
+                child: Text(
+                  "Selecciona dos Pokémon para comparar",
+                  style: TextStyle(color: Colors.grey[600], fontSize: 16),
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
-    );
-  }
-
-Widget _buildDropdown(ValueChanged<PokemonDetail?> onChanged, PokemonDetail? selected) {
-  return DropdownSearch<PokemonDetail>(
-    items: _pokemones,
-    selectedItem: selected,
-    itemAsString: (PokemonDetail p) => p.name[0].toUpperCase() + p.name.substring(1),
-    onChanged: onChanged,
-    compareFn: (a, b) => a.name == b.name, // 👈 ¡ESTO SOLUCIONA EL ERROR!
-    dropdownDecoratorProps: const DropDownDecoratorProps(
-      dropdownSearchDecoration: InputDecoration(labelText: "Selecciona Pokémon"),
-    ),
-    filterFn: (item, filter) => item.name.toLowerCase().contains(filter.toLowerCase()),
-    popupProps: const PopupProps.menu(
-      showSearchBox: true,
-      showSelectedItems: true,
     ),
   );
 }
+
+  Widget _buildDropdown(ValueChanged<PokemonDetail?> onChanged, PokemonDetail? selected) {
+    return DropdownSearch<PokemonDetail>(
+      items: _pokemones,
+      selectedItem: selected,
+      itemAsString: (PokemonDetail p) => p.name[0].toUpperCase() + p.name.substring(1),
+      onChanged: onChanged,
+      compareFn: (a, b) => a.name == b.name, // 👈 ¡ESTO SOLUCIONA EL ERROR!
+      dropdownDecoratorProps: const DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(labelText: "Selecciona Pokémon"),
+      ),
+      filterFn: (item, filter) => item.name.toLowerCase().contains(filter.toLowerCase()),
+      popupProps: PopupProps.menu(
+        showSearchBox: true,
+        showSelectedItems: true,
+        itemBuilder: (context, item, isSelected) {
+          return ListTile(
+            leading: item.imageUrl != null
+                ? Image.network(item.imageUrl!, width: 40, height: 40)
+                : const SizedBox(width: 40, height: 40),
+            title: Text(item.name[0].toUpperCase() + item.name.substring(1)),
+          );
+        },
+      ),
+      dropdownBuilder: (context, selectedItem) {
+        if (selectedItem == null) return const Text("Selecciona Pokémon");
+        return Row(
+          children: [
+            if (selectedItem.imageUrl != null)
+              Image.network(selectedItem.imageUrl!, width: 40, height: 40),
+            const SizedBox(width: 10),
+            Text(selectedItem.name[0].toUpperCase() + selectedItem.name.substring(1)),
+          ],
+        );
+      },
+    );
+  }
 
   Widget _buildComparisonTable(PokemonDetail p1, PokemonDetail p2) {
     final statKeys = p1.stats.keys.toSet().intersection(p2.stats.keys.toSet()).toList();
@@ -185,9 +245,37 @@ Widget _buildDropdown(ValueChanged<PokemonDetail?> onChanged, PokemonDetail? sel
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Column(
+              children: [
+                if (p1.imageUrl != null)
+                  Image.network(p1.imageUrl!, width: 80, height: 80),
+                const SizedBox(height: 8),
+                Text(
+                  p1.name[0].toUpperCase() + p1.name.substring(1),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ],
+            ),
+            Column(
+              children: [
+                if (p2.imageUrl != null)
+                  Image.network(p2.imageUrl!, width: 80, height: 80),
+                const SizedBox(height: 8),
+                Text(
+                  p2.name[0].toUpperCase() + p2.name.substring(1),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
         Text(
           ganador,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         const SizedBox(height: 8),
         Row(
