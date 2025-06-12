@@ -175,8 +175,17 @@ void _mostrarSelectorColor(ThemeProvider themeProvider) {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 32),
                 const Divider(),
+                ListTile(
+                  title: const Text(
+                    'Configuración de Tema',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  leading: const Icon(Icons.settings),
+                  tileColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                ),
                 ListTile(
                   leading: const Icon(Icons.color_lens),
                   title: const Text('Color del tema'),
