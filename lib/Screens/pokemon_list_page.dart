@@ -1,12 +1,14 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'dart:convert';
+import 'package:PokeStats/utils/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'login_page.dart';
 import 'models.dart';
 import 'pokemon_detail_page.dart';
 import 'comparar.dart'; // ⬅️ Asegúrate de que este archivo existe
+import 'package:provider/provider.dart';
 
 class PokemonListPage extends StatefulWidget {
   const PokemonListPage({super.key});
@@ -159,16 +161,21 @@ class _PokemonListPageState extends State<PokemonListPage> {
           final pokemon = _filteredPokemons[index];
           return GestureDetector(
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      PokemonDetailPage(url: pokemon.url, name: pokemon.name),
-                ),
-              );
+              final primaryColor = Provider.of<ThemeProvider>(context, listen: false).primaryColor;
+
+Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => PokemonDetailPage(
+      url: pokemon.url,
+      name: pokemon.name,
+      selectedColor: primaryColor, // ← color tomado del Provider
+    ),
+  ),
+);
             },
             child: Card(
-              color: Colors.grey[900],
+              color: Theme.of(context).cardColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -204,11 +211,11 @@ class _PokemonListPageState extends State<PokemonListPage> {
                     Text(
                       _capitalize(pokemon.name),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
+                     style: TextStyle(
+  fontSize: 14,
+  fontWeight: FontWeight.w600,
+  color: Theme.of(context).textTheme.bodyLarge?.color,
+),
                     ),
                   ],
                 ),
@@ -233,7 +240,7 @@ class _PokemonListPageState extends State<PokemonListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppBar(automaticallyImplyLeading: false,
         title: const Text('Lista de Pokémon'),
         actions: [
           IconButton(
@@ -248,15 +255,15 @@ class _PokemonListPageState extends State<PokemonListPage> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Buscar Pokémon',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.grey[800],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
+  hintText: 'Buscar Pokémon',
+  prefixIcon: const Icon(Icons.search),
+  filled: true,
+  fillColor: Theme.of(context).cardColor,
+  border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: BorderSide.none,
+  ),
+),
             ),
           ),
         ),

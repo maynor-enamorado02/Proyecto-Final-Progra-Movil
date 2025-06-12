@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-//import 'package:prueba/Screens/models.dart';
-import 'pokemon_list_page.dart';
-import 'package:prueba/Screens/favoritos.dart';
-import 'package:prueba/Screens/opciones.dart';
+import 'package:provider/provider.dart';
+import 'package:PokeStats/Screens/favoritos.dart';
+import 'package:PokeStats/Screens/opciones.dart';
+import 'package:PokeStats/Screens/pokemon_list_page.dart';
+import 'package:PokeStats/utils/theme_provider.dart'; // Asegúrate de importar el ThemeProvider
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,9 +16,9 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    const PokemonListPage(),  // index 0
-    FavoritosPage(),          // index 1
-    const OpcionesPage(),     // index 2 (mueve Opciones aquí)
+    const PokemonListPage(),
+    FavoritosPage(),
+    const OpcionesPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -28,16 +29,22 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+    final primaryColor = themeProvider.primaryColor;
+
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppBar(automaticallyImplyLeading: false,
         title: const Text("Pokémon App"),
+        backgroundColor: primaryColor, // AppBar usa el color primario
       ),
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: Colors.redAccent,
-        unselectedItemColor: Colors.white70,
+        selectedItemColor: primaryColor,
+        unselectedItemColor: isDarkMode ? Colors.white70 : Colors.black54,
+        backgroundColor: isDarkMode ? Colors.black : Colors.white,
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(

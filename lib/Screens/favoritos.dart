@@ -36,7 +36,7 @@ class FavoritosPage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text("Mis Favoritos")),
+      appBar: AppBar(automaticallyImplyLeading: false,title: Text("Mis Favoritos")),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
             .collection('users')
@@ -45,11 +45,13 @@ class FavoritosPage extends StatelessWidget {
             .orderBy('timestamp', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting)
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
+          }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty)
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return Center(child: Text('No tienes favoritos aún.'));
+          }
 
           final favoritos = snapshot.data!.docs;
 
