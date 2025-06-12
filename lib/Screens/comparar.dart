@@ -140,7 +140,7 @@ void _onBattleComplete() {
       onChanged: onChanged,
       compareFn: (a, b) => a.name == b.name, // 👈 ¡ESTO SOLUCIONA EL ERROR!
       dropdownDecoratorProps: const DropDownDecoratorProps(
-        dropdownSearchDecoration: InputDecoration(labelText: "Selecciona Pokémon"),
+        dropdownSearchDecoration: InputDecoration(labelText: "Seleccionar"),
       ),
       filterFn: (item, filter) => item.name.toLowerCase().contains(filter.toLowerCase()),
       popupProps: PopupProps.menu(
@@ -156,7 +156,7 @@ void _onBattleComplete() {
         },
       ),
       dropdownBuilder: (context, selectedItem) {
-        if (selectedItem == null) return const Text("Selecciona Pokémon");
+        if (selectedItem == null) return const Text("Seleccionar");
         return Row(
           children: [
             if (selectedItem.imageUrl != null)
