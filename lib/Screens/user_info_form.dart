@@ -71,10 +71,18 @@ class _UserInfoFormState extends State<UserInfoForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Datos personales')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+return Scaffold(
+  appBar: AppBar(
+    title: const Text('Datos personales'),
+    leading: ModalRoute.of(context)?.canPop == true
+        ? IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+          )
+        : null,
+  ),
+  body: Padding(
+    padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: ListView(

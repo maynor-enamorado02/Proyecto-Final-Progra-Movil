@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:PokeStats/utils/theme_provider.dart';
 import 'login_page.dart';
 
 class OpcionesPage extends StatefulWidget {
@@ -12,7 +15,6 @@ class OpcionesPage extends StatefulWidget {
 }
 
 class OpcionesPageState extends State<OpcionesPage> {
-  bool _isDarkMode = false;
   User? _usuario;
   Map<String, dynamic>? _datosUsuario;
 
@@ -26,8 +28,7 @@ class OpcionesPageState extends State<OpcionesPage> {
   Future<void> _cargarDatosUsuario() async {
     final uid = _usuario?.uid;
     if (uid != null) {
-      final doc =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
       if (doc.exists) {
         setState(() {
           _datosUsuario = doc.data();
@@ -46,8 +47,57 @@ class OpcionesPageState extends State<OpcionesPage> {
     );
   }
 
+void _mostrarSelectorColor(ThemeProvider themeProvider) {
+  Color pickerColor = themeProvider.primaryColor;
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      final screenWidth = MediaQuery.of(context).size.width;
+      final dialogWidth = screenWidth * 0.9; // 90% del ancho de pantalla
+
+      return AlertDialog(
+        title: const Text('Selecciona un color primario'),
+        content: SizedBox(
+          width: dialogWidth,
+          child: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: pickerColor,
+              onColorChanged: (color) => pickerColor = color,
+              enableAlpha: false,
+              displayThumbColor: true,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancelar'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          ElevatedButton(
+            child: const Text('Aplicar'),
+            onPressed: () async {
+              themeProvider.updatePrimaryColor(pickerColor);
+              Navigator.of(context).pop();
+
+              final uid = _usuario?.uid;
+              if (uid != null) {
+                await FirebaseFirestore.instance.collection('users').doc(uid).update({
+                  'colorPrimario': pickerColor.value.toRadixString(16),
+                });
+              }
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil de Usuario')),
       body: _usuario == null
@@ -68,8 +118,7 @@ class OpcionesPageState extends State<OpcionesPage> {
                         _usuario!.isAnonymous
                             ? 'Usuario anónimo'
                             : _usuario!.displayName ?? 'Nombre no disponible',
-                        style: const TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -102,38 +151,25 @@ class OpcionesPageState extends State<OpcionesPage> {
                 ),
                 const SizedBox(height: 32),
                 const Divider(),
-
-                if (_usuario!.isAnonymous)
-                  ListTile(
-                    leading: const Icon(Icons.login),
-                    title: const Text('Iniciar Sesión'),
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => const LoginPage()),
-                      );
-                    },
-                  )
-                else ...[
-                  ListTile(
-                    leading: const Icon(Icons.dark_mode),
-                    title: const Text('Modo Oscuro'),
-                    trailing: Switch(
-                      value: _isDarkMode,
-                      onChanged: (bool value) {
-                        setState(() {
-                          _isDarkMode = value;
-                        });
-                      },
-                    ),
+                ListTile(
+                  leading: const Icon(Icons.color_lens),
+                  title: const Text('Color del tema'),
+                  onTap: () => _mostrarSelectorColor(themeProvider),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.brightness_6),
+                  title: const Text('Tema Oscuro'),
+                  trailing: Switch(
+                    value: themeProvider.isDarkMode,
+                    onChanged: themeProvider.toggleDarkMode,
                   ),
-                  const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.logout),
-                    title: const Text('Cerrar sesión'),
-                    onTap: _cerrarSesion,
-                  ),
-                ],
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.logout),
+                  title: const Text('Cerrar sesión'),
+                  onTap: _cerrarSesion,
+                ),
               ],
             ),
     );

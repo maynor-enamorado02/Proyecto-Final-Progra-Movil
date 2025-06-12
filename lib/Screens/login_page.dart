@@ -1,10 +1,13 @@
+//login_page.dart
 // ignore_for_file: use_build_context_synchronously
+import 'package:PokeStats/utils/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:prueba/Screens/email_login_form.dart';
-import 'package:prueba/Screens/user_info_form.dart';
+import 'package:PokeStats/Screens/email_login_form.dart';
+import 'package:PokeStats/Screens/user_info_form.dart';
 import 'homepage.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -31,52 +34,59 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) {
-        setState(() {
-          _errorMessage = "Inicio de sesión cancelado";
-        });
-        return;
-      }
-
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      _goToHomePage();
-    } catch (e) {
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+    if (googleUser == null) {
       setState(() {
-        _errorMessage = "Error con Google: $e";
+        _errorMessage = "Inicio de sesión cancelado";
       });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      return;
     }
+
+    final googleAuth = await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    await FirebaseAuth.instance.signInWithCredential(credential);
+
+    // Cargar tema después del login
+    await Provider.of<ThemeProvider>(context, listen: false).loadUserPreferences();
+
+    _goToHomePage();
+  } catch (e) {
+    setState(() {
+      _errorMessage = "Error con Google: $e";
+    });
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
 
   Future<void> _signInAnonymously() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  setState(() {
+    _isLoading = true;
+    _errorMessage = null;
+  });
 
-    try {
-      await FirebaseAuth.instance.signInAnonymously();
-      _goToHomePage();
-    } catch (e) {
-      setState(() {
-        _errorMessage = "Error como invitado: $e";
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+  try {
+    await FirebaseAuth.instance.signInAnonymously();
+
+    await Provider.of<ThemeProvider>(context, listen: false).loadUserPreferences();
+
+    _goToHomePage();
+  } catch (e) {
+    setState(() {
+      _errorMessage = "Error como invitado: $e";
+    });
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
 
   @override
   Widget build(BuildContext context) {

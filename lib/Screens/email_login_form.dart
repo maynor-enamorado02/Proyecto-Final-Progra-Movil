@@ -1,6 +1,9 @@
+// email_login_form.dart
+import 'package:PokeStats/utils/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'homepage.dart';
+import 'package:provider/provider.dart';
 
 class EmailLoginForm extends StatefulWidget {
   const EmailLoginForm({super.key});
@@ -26,22 +29,24 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
     });
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+  await FirebaseAuth.instance.signInWithEmailAndPassword(
+    email: _emailController.text.trim(),
+    password: _passwordController.text.trim(),
+  );
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        _errorMessage = e.message;
-      });
-    } finally {
-      setState(() => _isLoading = false);
-    }
+  await Provider.of<ThemeProvider>(context, listen: false).loadUserPreferences();
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (context) => const HomePage()),
+  );
+} on FirebaseAuthException catch (e) {
+  setState(() {
+    _errorMessage = e.message;
+  });
+} finally {
+  setState(() => _isLoading = false);
+}
   }
 
   @override
