@@ -1,6 +1,5 @@
 // utils/battle_animation.dart
 
-import 'dart:ui';
 
 import 'package:PokeStats/Screens/models.dart';
 import 'package:flutter/material.dart';

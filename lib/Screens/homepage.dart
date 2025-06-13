@@ -16,7 +16,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  int _visitCount = 0;
+  final int _visitCount = 0;
   User? _user;
 
   final List<Widget> _screens = [

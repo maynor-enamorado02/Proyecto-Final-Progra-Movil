@@ -32,65 +32,65 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-    if (googleUser == null) {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        setState(() {
+          _errorMessage = "Inicio de sesión cancelado";
+        });
+        return;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
+      // Cargar tema después del login
+      await Provider.of<ThemeProvider>(context, listen: false).loadUserPreferences();
+
+      _goToHomePage();
+    } catch (e) {
       setState(() {
-        _errorMessage = "Inicio de sesión cancelado";
+        _errorMessage = "Error con Google: $e";
       });
-      return;
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
-
-    final googleAuth = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-
-    await FirebaseAuth.instance.signInWithCredential(credential);
-
-    // Cargar tema después del login
-    await Provider.of<ThemeProvider>(context, listen: false).loadUserPreferences();
-
-    _goToHomePage();
-  } catch (e) {
-    setState(() {
-      _errorMessage = "Error con Google: $e";
-    });
-  } finally {
-    setState(() {
-      _isLoading = false;
-    });
   }
-}
 
   Future<void> _signInAnonymously() async {
-  setState(() {
-    _isLoading = true;
-    _errorMessage = null;
-  });
-
-  try {
-    await FirebaseAuth.instance.signInAnonymously();
-
-    await Provider.of<ThemeProvider>(context, listen: false).loadUserPreferences();
-
-    _goToHomePage();
-  } catch (e) {
     setState(() {
-      _errorMessage = "Error como invitado: $e";
+      _isLoading = true;
+      _errorMessage = null;
     });
-  } finally {
-    setState(() {
-      _isLoading = false;
-    });
+
+    try {
+      await FirebaseAuth.instance.signInAnonymously();
+
+      await Provider.of<ThemeProvider>(context, listen: false).loadUserPreferences();
+
+      _goToHomePage();
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Error como invitado: $e";
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Login Pokémon"),
+        //title: const Text("Login Pokémon"),
         centerTitle: true,
       ),
       body: Center(
@@ -98,10 +98,24 @@ class _LoginPageState extends State<LoginPage> {
           padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Column(
             children: [
-              Image.network(
-                "https://upload.wikimedia.org/wikipedia/commons/5/51/Pokebola-pokeball-png-0.png",
-                width: 100,
-                height: 100,
+              const SizedBox(height: 10), // Reduce el espacio en la parte superior
+              // Usa Align para mover las imágenes hacia arriba
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Column(
+                  children: [
+                    Image.network(
+                      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/International_Pok%C3%A9mon_logo.svg/1200px-International_Pok%C3%A9mon_logo.svg.png",
+                      width: 400,
+                      height: 250,
+                    ),
+                    Image.network(
+                      "https://upload.wikimedia.org/wikipedia/commons/5/51/Pokebola-pokeball-png-0.png",
+                      width: 100,
+                      height: 100,
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 24),
               if (_errorMessage != null)
@@ -144,27 +158,26 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 8),
-SizedBox(
-  width: double.infinity,
-  height: 45,
-  child: ElevatedButton.icon(
-    icon: const Icon(Icons.email_outlined),
-    label: const Text("Iniciar sesión con Correo"),
-    onPressed: _isLoading
-        ? null
-        : () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const EmailLoginForm()),
-            );
-          },
-    style: ElevatedButton.styleFrom(
-      backgroundColor: Colors.teal,
-    ),
-  ),
-),
-const SizedBox(height: 8),
-
+              SizedBox(
+                width: double.infinity,
+                height: 45,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.email_outlined),
+                  label: const Text("Iniciar sesión con Correo"),
+                  onPressed: _isLoading
+                      ? null
+                      : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const EmailLoginForm()),
+                          );
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
                 height: 45,
