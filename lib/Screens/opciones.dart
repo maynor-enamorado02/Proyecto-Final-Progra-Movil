@@ -24,7 +24,7 @@ void initState() {
   _usuario = FirebaseAuth.instance.currentUser;
 
   if (_usuario == null) {
-    // Redirigir al login si no hay sesión
+    // Redirigir al login
     Future.microtask(() {
       Navigator.pushReplacement(
         context,
@@ -78,7 +78,7 @@ void _mostrarSelectorColor(ThemeProvider themeProvider) {
     context: context,
     builder: (context) {
       final screenWidth = MediaQuery.of(context).size.width;
-      final dialogWidth = screenWidth * 0.9; // 90% del ancho de pantalla
+      final dialogWidth = screenWidth * 0.9;
 
       return AlertDialog(
         title: const Text('Selecciona un color primario'),

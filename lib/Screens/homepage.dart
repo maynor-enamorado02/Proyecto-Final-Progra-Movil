@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:PokeStats/Screens/favoritos.dart';
 import 'package:PokeStats/Screens/opciones.dart';
 import 'package:PokeStats/Screens/pokemon_list_page.dart';
-import 'package:PokeStats/utils/theme_provider.dart'; // Asegúrate de importar el ThemeProvider
+import 'package:PokeStats/utils/theme_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -119,7 +119,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(automaticallyImplyLeading: false,
         title: const Text("PokéStats"),
-        backgroundColor: primaryColor, // AppBar usa el color primario
+        backgroundColor: primaryColor,
       ),
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(

@@ -191,7 +191,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> {
         ? "Inicia sesión para agregar"
         : (isFavorite ? "Ya en Favoritos" : "Agregar a Favoritos"),
     style: TextStyle(
-      color: _darken(widget.selectedColor), // texto más oscuro basado en el color base
+      color: _darken(widget.selectedColor),
       fontWeight: FontWeight.bold,
     ),
   ),
