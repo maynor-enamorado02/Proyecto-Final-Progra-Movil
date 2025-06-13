@@ -48,6 +48,7 @@ class _LoginPageState extends State<LoginPage> {
 
     await FirebaseAuth.instance.signInWithCredential(credential);
 
+    // Cargar tema después del login
     await Provider.of<ThemeProvider>(context, listen: false).loadUserPreferences();
 
     _goToHomePage();
@@ -86,40 +87,6 @@ class _LoginPageState extends State<LoginPage> {
 }
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PokemonDetail &&
-          runtimeType == other.runtimeType &&
-          name == other.name;
-
-  @override
-  int get hashCode => name.hashCode;
-}
-
-
-Future<List<PokemonDetail>> fetchPokemonDetailsBatch(int offset, int limit) async {
-  final url = Uri.parse('https://pokeapi.co/api/v2/pokemon?offset=$offset&limit=$limit');
-  final response = await http.get(url);
-
-  if (response.statusCode == 200) {
-    final data = json.decode(response.body);
-    final List results = data['results'];
-
-    List<Future<PokemonDetail?>> futures = results.map((item) async {
-      try {
-        final detailResponse = await http.get(Uri.parse(item['url']));
-        if (detailResponse.statusCode == 200) {
-          final detailData = json.decode(detailResponse.body);
-          return PokemonDetail.fromJson(detailData);
-        }
-      } catch (_) {}
-      return null;
-    }).toList();
-
-    final details = await Future.wait(futures);
-    return details.whereType<PokemonDetail>().toList();
-  } else {
-    throw Exception('Error al cargar los Pokémon');
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
