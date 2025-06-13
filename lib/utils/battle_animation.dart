@@ -12,12 +12,12 @@ class BattleAnimation extends StatefulWidget {
   final String winnerName;
 
   const BattleAnimation({
-    Key? key,
+    super.key,
     required this.pokemon1,
     required this.pokemon2,
     required this.onAnimationComplete,
     required this.winnerName,
-  }) : super(key: key);
+  });
 
   @override
   _BattleAnimationState createState() => _BattleAnimationState();
