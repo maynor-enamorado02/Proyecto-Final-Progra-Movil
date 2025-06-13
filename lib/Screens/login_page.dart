@@ -48,7 +48,6 @@ class _LoginPageState extends State<LoginPage> {
 
     await FirebaseAuth.instance.signInWithCredential(credential);
 
-    // Cargar tema después del login
     await Provider.of<ThemeProvider>(context, listen: false).loadUserPreferences();
 
     _goToHomePage();
