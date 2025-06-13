@@ -22,7 +22,7 @@ class ThemeProvider with ChangeNotifier {
         useMaterial3: true,
       );
 
-  /// Cargar preferencias al inicio
+  /// cargar preferencias al inicio
   Future<void> loadUserPreferences() async {
     final user = FirebaseAuth.instance.currentUser;
 
@@ -82,7 +82,7 @@ class ThemeProvider with ChangeNotifier {
         'colorPrimario': _colorToHex(_primaryColor),
       }, SetOptions(merge: true));
     } else {
-      // Guardar SharedPreferences local
+      // guardar SharedPreferences local
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('temaOscuro', _isDarkMode);
       await prefs.setString('colorPrimario', _colorToHex(_primaryColor));

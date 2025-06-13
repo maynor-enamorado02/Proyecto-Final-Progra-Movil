@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'login_page.dart';
 import 'models.dart';
 import 'pokemon_detail_page.dart';
-import 'comparar.dart'; // ⬅️ Asegúrate de que este archivo existe
+import 'comparar.dart';
 import 'package:provider/provider.dart';
 
 class PokemonListPage extends StatefulWidget {

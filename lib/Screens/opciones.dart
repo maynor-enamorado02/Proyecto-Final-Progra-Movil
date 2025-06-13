@@ -23,8 +23,7 @@ void initState() {
   super.initState();
   _usuario = FirebaseAuth.instance.currentUser;
 
-  if (_usuario == null) {
-    // Redirigir al login
+  if (_usuario == null) {  // redirige al login
     Future.microtask(() {
       Navigator.pushReplacement(
         context,

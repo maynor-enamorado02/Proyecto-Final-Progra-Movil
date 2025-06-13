@@ -36,7 +36,7 @@ class _BattleAnimationState extends State<BattleAnimation> with SingleTickerProv
     super.initState();
     _controller = AnimationController(vsync: this, duration: const Duration(seconds: 4));
 
-    // Ambos se mueven hacia el centro 50 y 50
+    // ajustar el valor de c/u de 50 si se quiere mas movimiento
     _leftPositionAnim = Tween<double>(begin: -150, end: 50).animate(
       CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.5, curve: Curves.easeInOut)),
     );

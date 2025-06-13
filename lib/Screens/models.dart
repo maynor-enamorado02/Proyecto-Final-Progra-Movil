@@ -65,7 +65,6 @@ class PokemonDetail {
   int get hashCode => name.hashCode;
 }
 
-// Función para obtener detalles de un Pokemon específico en comparar
 Future<List<PokemonDetail>> fetchPokemonDetailsBatch(int offset, int limit) async {
   final url = Uri.parse('https://pokeapi.co/api/v2/pokemon?offset=$offset&limit=$limit');
   final response = await http.get(url);

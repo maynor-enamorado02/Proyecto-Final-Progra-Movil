@@ -40,24 +40,20 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Verifica el contador de inicios de sesión desde Firestore
+// code para verificar si el usuario ya tiene sesiones iniciadas
   Future<void> _checkVisitCount() async {
     final uid = _user?.uid;
 
     if (uid != null) {
-      // Obtén el documento del usuario desde Firestore
       DocumentSnapshot doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
       if (doc.exists) {
-        // Si el documento existe, recupera los datos y verifica el campo 'visitCount'
         var data = doc.data() as Map<String, dynamic>;
 
-        // Si el campo 'visitCount' no existe, asigna 0
         int currentVisitCount = data['visitCount'] ?? 0;
 
         if (currentVisitCount < 3) {
           _showWelcomeDialog();
-          // Incrementa el contador de visitas
           await FirebaseFirestore.instance.collection('users').doc(uid).update({
             'visitCount': currentVisitCount + 1,
           });
@@ -65,7 +61,6 @@ class _HomePageState extends State<HomePage> {
           print("El contador ha superado el límite de 3.");
         }
       } else {
-        // Si el documento no existe, crea uno con el contador inicializado a 1
         await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'visitCount': 1,
         });
@@ -74,7 +69,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Muestra el mensaje de bienvenida con una imagen de internet
+  // mostrar mensaje bienvenida
   void _showWelcomeDialog() {
     print("Mostrando el cuadro de diálogo...");
     showDialog(
