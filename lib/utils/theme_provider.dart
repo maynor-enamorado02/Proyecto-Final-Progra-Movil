@@ -22,7 +22,7 @@ class ThemeProvider with ChangeNotifier {
         useMaterial3: true,
       );
 
-  /// Cargar preferencias al inicio
+  /// cargar preferencias al inicio
   Future<void> loadUserPreferences() async {
     final user = FirebaseAuth.instance.currentUser;
 
@@ -36,7 +36,7 @@ class ThemeProvider with ChangeNotifier {
         _primaryColor = Color(int.parse(colorHex.replaceFirst('#', '0xff')));
       } catch (e) {
         print('Error al convertir colorPrimario: $colorHex');
-        _primaryColor = Colors.blue; // Color por defecto
+        _primaryColor = Colors.blue;
       }
     }
     if (data.containsKey('temaOscuro')) {
@@ -53,7 +53,7 @@ class ThemeProvider with ChangeNotifier {
       _primaryColor = Color(int.parse(colorHex.replaceFirst('#', '0xff')));
     } catch (e) {
       print('Error al convertir colorPrimario (anon): $colorHex');
-      _primaryColor = Colors.blue; // Color por defecto
+      _primaryColor = Colors.blue;
     }
   }
   notifyListeners();
@@ -76,20 +76,19 @@ class ThemeProvider with ChangeNotifier {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user != null && !user.isAnonymous) {
-      // Guardar en Firestore
+      // Guardar Firestore
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
         'temaOscuro': _isDarkMode,
         'colorPrimario': _colorToHex(_primaryColor),
       }, SetOptions(merge: true));
     } else {
-      // Guardar en SharedPreferences
+      // guardar SharedPreferences local
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('temaOscuro', _isDarkMode);
       await prefs.setString('colorPrimario', _colorToHex(_primaryColor));
     }
   }
 
-  // Helper para convertir Color a Hex
   String _colorToHex(Color color) =>
       '#${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
 }

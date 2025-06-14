@@ -1,6 +1,6 @@
 import 'package:PokeStats/utils/Battle_animation.dart';
 import 'package:flutter/material.dart';
-import 'models.dart'; // Tu modelo PokemonDetail debe tener .name, .stats Map<String, int> y .imageUrl
+import 'models.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
 class CompararPage extends StatefulWidget {
@@ -138,7 +138,7 @@ void _onBattleComplete() {
       selectedItem: selected,
       itemAsString: (PokemonDetail p) => p.name[0].toUpperCase() + p.name.substring(1),
       onChanged: onChanged,
-      compareFn: (a, b) => a.name == b.name, // 👈 ¡ESTO SOLUCIONA EL ERROR!
+      compareFn: (a, b) => a.name == b.name,
       dropdownDecoratorProps: const DropDownDecoratorProps(
         dropdownSearchDecoration: InputDecoration(labelText: "Seleccionar"),
       ),

@@ -85,7 +85,6 @@ class FavoritosPage extends StatelessWidget {
                     icon: Icon(Icons.delete),
                     color: Colors.red,
                     onPressed: () async {
-                      // Confirmación antes de eliminar
                       final confirm = await showDialog<bool>(
                         context: context,
                         builder: (context) => AlertDialog(

@@ -1,6 +1,5 @@
 // utils/battle_animation.dart
 
-import 'dart:ui';
 
 import 'package:PokeStats/Screens/models.dart';
 import 'package:flutter/material.dart';
@@ -12,12 +11,12 @@ class BattleAnimation extends StatefulWidget {
   final String winnerName;
 
   const BattleAnimation({
-    Key? key,
+    super.key,
     required this.pokemon1,
     required this.pokemon2,
     required this.onAnimationComplete,
     required this.winnerName,
-  }) : super(key: key);
+  });
 
   @override
   _BattleAnimationState createState() => _BattleAnimationState();
@@ -36,7 +35,7 @@ class _BattleAnimationState extends State<BattleAnimation> with SingleTickerProv
     super.initState();
     _controller = AnimationController(vsync: this, duration: const Duration(seconds: 4));
 
-    // Ambos Pokémon se mueven hacia el centro (50 y 50)
+    // ajustar el valor de c/u de 50 si se quiere mas movimiento
     _leftPositionAnim = Tween<double>(begin: -150, end: 50).animate(
       CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.5, curve: Curves.easeInOut)),
     );
@@ -44,12 +43,11 @@ class _BattleAnimationState extends State<BattleAnimation> with SingleTickerProv
       CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.5, curve: Curves.easeInOut)),
     );
 
-    // Flash amarillo en la mitad de la animación (ataque)
     _flashAnim = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: const Interval(0.45, 0.65)),
     );
 
-    // Animación para mostrar al ganador
+    // Anim para mostrar al ganador
     _winnerOpacityAnim = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: const Interval(0.7, 1.0, curve: Curves.easeIn)),
     );
@@ -87,7 +85,6 @@ class _BattleAnimationState extends State<BattleAnimation> with SingleTickerProv
           return Stack(
             alignment: Alignment.center,
             children: [
-              // Fondo flash cuando atacan
               Opacity(
                 opacity: _flashAnim.value,
                 child: Container(
@@ -95,12 +92,11 @@ class _BattleAnimationState extends State<BattleAnimation> with SingleTickerProv
                 ),
               ),
 
-              // Pokémon 1
               Positioned(
                 left: _leftPositionAnim.value,
                 top: 40,
                 child: Transform.scale(
-                  scale: _flashAnim.value > 0.5 ? 1.1 : 1.0, // pequeño zoom en ataque
+                  scale: _flashAnim.value > 0.5 ? 1.1 : 1.0,
                   child: Image.network(
                     widget.pokemon1.imageUrl ?? '',
                     width: size,
@@ -109,7 +105,7 @@ class _BattleAnimationState extends State<BattleAnimation> with SingleTickerProv
                 ),
               ),
 
-              // Pokémon 2
+
               Positioned(
                 right: _rightPositionAnim.value,
                 top: 40,
@@ -123,7 +119,7 @@ class _BattleAnimationState extends State<BattleAnimation> with SingleTickerProv
                 ),
               ),
 
-              // Texto ganador animado
+              // Texto ganador
               Positioned(
                 bottom: 10,
                 child: Opacity(
