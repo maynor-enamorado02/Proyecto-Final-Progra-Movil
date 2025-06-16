@@ -19,21 +19,22 @@ class OpcionesPageState extends State<OpcionesPage> {
   Map<String, dynamic>? _datosUsuario;
 
   @override
-void initState() {
-  super.initState();
-  _usuario = FirebaseAuth.instance.currentUser;
+  void initState() {
+    super.initState();
+    _usuario = FirebaseAuth.instance.currentUser;
 
-  if (_usuario == null) {  // redirige al login
-    Future.microtask(() {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-      );
-    });
-  } else {
-    _cargarDatosUsuario();
+    if (_usuario == null) {
+      Future.microtask(() {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+        );
+      });
+    } else {
+      _cargarDatosUsuario();
+      _cargarColorTema(); // Cargar el color de tema al iniciar sesión
+    }
   }
-}
 
   Future<void> _cargarDatosUsuario() async {
     final uid = _usuario?.uid;
@@ -47,82 +48,91 @@ void initState() {
     }
   }
 
-  Future<void> _cerrarSesion() async {
-    try {
-    if (!(_usuario?.isAnonymous ?? true)) {
-      final providerData = _usuario?.providerData;
-      final isGoogle = providerData?.any((info) => info.providerId == 'google.com') ?? false;
-      if (isGoogle) {
-        await GoogleSignIn().signOut();
-      }
-    }
-
-    await FirebaseAuth.instance.signOut();
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error al cerrar sesión: $e')),
-    );
+// Método para cargar el color del tema
+Future<void> _cargarColorTema() async {
+  final uid = _usuario?.uid;
+  if (uid != null) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    await themeProvider.loadUserPreferences();  // Carga las preferencias del usuario, incluyendo el color.
   }
 }
 
-void _mostrarSelectorColor(ThemeProvider themeProvider) {
-  Color pickerColor = themeProvider.primaryColor;
+  Future<void> _cerrarSesion() async {
+    try {
+      if (!(_usuario?.isAnonymous ?? true)) {
+        final providerData = _usuario?.providerData;
+        final isGoogle = providerData?.any((info) => info.providerId == 'google.com') ?? false;
+        if (isGoogle) {
+          await GoogleSignIn().signOut();
+        }
+      }
 
-  showDialog(
-    context: context,
-    builder: (context) {
-      final screenWidth = MediaQuery.of(context).size.width;
-      final dialogWidth = screenWidth * 0.9;
+      await FirebaseAuth.instance.signOut();
 
-      return AlertDialog(
-        title: const Text('Selecciona un color primario'),
-        content: SizedBox(
-          width: dialogWidth,
-          child: SingleChildScrollView(
-            child: ColorPicker(
-              pickerColor: pickerColor,
-              onColorChanged: (color) => pickerColor = color,
-              enableAlpha: false,
-              displayThumbColor: true,
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cerrar sesión: $e')),
+      );
+    }
+  }
+
+  void _mostrarSelectorColor(ThemeProvider themeProvider) {
+    Color pickerColor = themeProvider.primaryColor;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final dialogWidth = screenWidth * 0.9;
+
+        return AlertDialog(
+          title: const Text('Selecciona un color primario'),
+          content: SizedBox(
+            width: dialogWidth,
+            child: SingleChildScrollView(
+              child: ColorPicker(
+                pickerColor: pickerColor,
+                onColorChanged: (color) => pickerColor = color,
+                enableAlpha: false,
+                displayThumbColor: true,
+              ),
             ),
           ),
-        ),
-        actions: [
-          TextButton(
-            child: const Text('Cancelar'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          ElevatedButton(
-            child: const Text('Aplicar'),
-            onPressed: () async {
-              themeProvider.updatePrimaryColor(pickerColor);
-              Navigator.of(context).pop();
+          actions: [
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            ElevatedButton(
+              child: const Text('Aplicar'),
+              onPressed: () async {
+                themeProvider.updatePrimaryColor(pickerColor);
+                Navigator.of(context).pop();
 
-              final uid = _usuario?.uid;
-              if (uid != null) {
-                await FirebaseFirestore.instance.collection('users').doc(uid).update({
-                  'colorPrimario': pickerColor.value.toRadixString(16),
-                });
-              }
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
+                final uid = _usuario?.uid;
+                if (uid != null) {
+                  await FirebaseFirestore.instance.collection('users').doc(uid).update({
+                    'colorPrimario': pickerColor.value.toRadixString(16),
+                  });
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(automaticallyImplyLeading: false,title: const Text('Perfil de Usuario')),
+      appBar: AppBar(automaticallyImplyLeading: false, title: const Text('Perfil de Usuario')),
       body: _usuario == null
           ? const Center(child: Text("No hay usuario autenticado"))
           : ListView(
@@ -138,13 +148,13 @@ void _mostrarSelectorColor(ThemeProvider themeProvider) {
                       ),
                       const SizedBox(height: 16),
                       Text(
-  _usuario!.isAnonymous
-      ? 'Usuario anónimo'
-      : (_datosUsuario?['nombre'] != null && _datosUsuario?['apellido'] != null)
-          ? '${_datosUsuario!['nombre']} ${_datosUsuario!['apellido']}'
-          : (_usuario!.displayName ?? 'Nombre no disponible'),
-  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-),
+                        _usuario!.isAnonymous
+                            ? 'Usuario anónimo'
+                            : (_datosUsuario?['nombre'] != null && _datosUsuario?['apellido'] != null)
+                                ? '${_datosUsuario!['nombre']} ${_datosUsuario!['apellido']}'
+                                : (_usuario!.displayName ?? 'Nombre no disponible'),
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         _usuario!.isAnonymous

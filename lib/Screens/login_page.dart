@@ -72,6 +72,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       await FirebaseAuth.instance.signInAnonymously();
 
+      // Cargar preferencias después de iniciar sesión como invitado
       await Provider.of<ThemeProvider>(context, listen: false).loadUserPreferences();
 
       _goToHomePage();
@@ -90,7 +91,6 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        //title: const Text("Login Pokémon"),
         centerTitle: true,
       ),
       body: Center(
