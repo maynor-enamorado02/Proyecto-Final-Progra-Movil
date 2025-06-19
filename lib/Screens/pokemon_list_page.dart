@@ -132,100 +132,105 @@ class _PokemonListPageState extends State<PokemonListPage> {
     }
   }
 
-  Widget _buildList() {
-    if (_hasError) {
-      return Center(
-        child: Text(_errorMessage ?? 'Error desconocido'),
-      );
-    }
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_filteredPokemons.isEmpty) {
-      return const Center(
-        child: Text('No se encontraron pokémons'),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          childAspectRatio: 0.7,
-        ),
-        itemCount: _filteredPokemons.length,
-        itemBuilder: (context, index) {
-          final pokemon = _filteredPokemons[index];
-          return GestureDetector(
-            onTap: () {
-              final primaryColor = Provider.of<ThemeProvider>(context, listen: false).primaryColor;
-
-Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => PokemonDetailPage(
-      url: pokemon.url,
-      name: pokemon.name,
-      selectedColor: primaryColor, // ← color tomado del Provider
-    ),
-  ),
-);
-            },
-            child: Card(
-              color: Theme.of(context).cardColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 3,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    FutureBuilder<String?>(
-                      future: pokemon.getImageUrl(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done &&
-                            snapshot.hasData) {
-                          return Image.network(
-                            snapshot.data!,
-                            width: 70,
-                            height: 70,
-                            fit: BoxFit.contain,
-                          );
-                        } else {
-                          return const SizedBox(
-                            width: 70,
-                            height: 70,
-                            child: Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      _capitalize(pokemon.name),
-                      textAlign: TextAlign.center,
-                     style: TextStyle(
-  fontSize: 14,
-  fontWeight: FontWeight.w600,
-  color: Theme.of(context).textTheme.bodyLarge?.color,
-),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
+Widget _buildList() {
+  if (_hasError) {
+    return Center(
+      child: Text(_errorMessage ?? 'Error desconocido'),
     );
   }
+  if (isLoading) {
+    return const Center(child: CircularProgressIndicator());
+  }
+  if (_filteredPokemons.isEmpty) {
+    return const Center(
+      child: Text('No se encontraron pokémons'),
+    );
+  }
+
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final isTablet = constraints.maxWidth > 600;
+      final imageSize = isTablet ? 120.0 : 70.0;
+      final fontSize = isTablet ? 20.0 : 14.0;
+
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 200,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 0.7,
+          ),
+          itemCount: _filteredPokemons.length,
+          itemBuilder: (context, index) {
+            final pokemon = _filteredPokemons[index];
+            return GestureDetector(
+              onTap: () {
+                final primaryColor = Provider.of<ThemeProvider>(context, listen: false).primaryColor;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PokemonDetailPage(
+                      url: pokemon.url,
+                      name: pokemon.name,
+                      selectedColor: primaryColor,
+                    ),
+                  ),
+                );
+              },
+              child: Card(
+                color: Theme.of(context).cardColor,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 3,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      FutureBuilder<String?>(
+                        future: pokemon.getImageUrl(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                            return Image.network(
+                              snapshot.data!,
+                              width: imageSize,
+                              height: imageSize,
+                              fit: BoxFit.contain,
+                            );
+                          } else {
+                            return SizedBox(
+                              width: imageSize,
+                              height: imageSize,
+                              child: const Center(
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _capitalize(pokemon.name),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: fontSize,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    },
+  );
+}
+
 
   String _capitalize(String text) {
     if (text.isEmpty) return text;
